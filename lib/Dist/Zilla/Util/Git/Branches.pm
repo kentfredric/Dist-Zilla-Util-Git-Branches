@@ -25,28 +25,62 @@ sub _build_git {
 }
 
 sub _mk_branch {
-    my ( $self, $branchname ) = @_;
-    require Dist::Zilla::Util::Git::Branches::Branch;
-    return Dist::Zilla::Util::Git::Branches::Branch->new(
-        git => $self->git,
-        name => $branchname,
-    );
-}
-sub _mk_branches {
-    my ( $self, @branches ) = @_;
-    return map { $self->_mk_branch($_) } @branches;
+  my ( $self, $branchname ) = @_;
+  require Dist::Zilla::Util::Git::Branches::Branch;
+  return Dist::Zilla::Util::Git::Branches::Branch->new(
+    git  => $self->git,
+    name => $branchname,
+  );
 }
 
+sub _mk_branches {
+  my ( $self, @branches ) = @_;
+  return map { $self->_mk_branch($_) } @branches;
+}
+
+
 sub branches {
-    my ( $self, ) = @_;
-    my @out;
-    for my $commdata ( $self->git->for_each_ref('refs/heads/*', '--format=%(objectname) %(refname)') ) {
-        if ( $commdata =~ qr{ \A (^[ ]+) [ ] refs/heads/ ( .+ ) \z }msx  ) {
-            my ( $sha, $branch ) = ( $1, $2 );
-            push @out, $self->_mk_branch( $branch );
-        }
+  my ( $self, ) = @_;
+  my @out;
+  for my $commdata ( $self->git->for_each_ref( 'refs/heads/*', '--format=%(objectname) %(refname)' ) ) {
+    if ( $commdata =~ qr{ \A ([^ ]+) [ ] refs/heads/ ( .+ ) \z }msx ) {
+      my ( $sha, $branch ) = ( $1, $2 );
+      push @out, $self->_mk_branch($branch);
+      next;
     }
-    return @out;
+    require Carp;
+    Carp::confess( 'Regexp failed to parse a line from `git for-each-ref` :' . $commdata );
+  }
+  return @out;
+}
+
+sub _current_sha1 {
+  my ($self)          = @_;
+  my (@current_sha1s) = $self->git->rev_parse('HEAD');
+  if ( scalar @current_sha1s != 1 ) {
+    require Carp;
+    Carp::confess('Fatal: rev_parse HEAD returned != 1 values');
+  }
+  return shift @current_sha1s;
+}
+
+sub _current_branch_name {
+  my ($self) = @_;
+  my (@current_names) = $self->git->rev_parse( '--abbrev-ref', 'HEAD' );
+  if ( scalar @current_names != 1 ) {
+    require Carp;
+    Carp::confess('Fatal: rev_parse --abbrev-ref HEAD returned != 1 values');
+  }
+  return shift @current_names;
+}
+
+
+sub current_branch {
+  my ( $self, ) = @_;
+  my $ref = $self->_current_branch_name;
+  return if not $ref;
+  return if $ref eq 'HEAD';    # Weird special case.
+  return $self->_mk_branch($ref);
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -87,6 +121,23 @@ So
     );
     for my $branch ( $branches->branches ) {
         printf "%s %s", $branch->name, $branch->sha1;
+    }
+
+=head1 METHODS
+
+=head2 C<branches>
+
+Returns a C<::Branch> object for each local branch.
+
+=head2 C<current_branch>
+
+Returns a C<::Branch> object if currently on a C<branch>, undef otherwise.
+
+    my $b = $branches->current_branch;
+    if ( defined $b ) {
+        printf "Currently on: %s", $b->name;
+    } else {
+        print "Detached HEAD";
     }
 
 =head1 AUTHOR

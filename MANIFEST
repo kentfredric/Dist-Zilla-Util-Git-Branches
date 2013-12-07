@@ -14,6 +14,7 @@ perlcritic.rc
 t/00-compile/lib_Dist_Zilla_Util_Git_Branches_Branch_pm.t
 t/00-compile/lib_Dist_Zilla_Util_Git_Branches_pm.t
 t/000-report-versions-tiny.t
+t/basic.t
 weaver.ini
 xt/author/critic.t
 xt/release/cpan-changes.t

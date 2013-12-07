@@ -50,9 +50,11 @@ sub pmver {
 
 eval { $v .= pmver('Carp','any version') };
 eval { $v .= pmver('Dist::Zilla::Util::Git::Wrapper','any version') };
+eval { $v .= pmver('Git::Wrapper','any version') };
 eval { $v .= pmver('Module::Build','0.4203') };
 eval { $v .= pmver('Moose','any version') };
 eval { $v .= pmver('MooseX::LazyRequire','any version') };
+eval { $v .= pmver('Path::Tiny','any version') };
 eval { $v .= pmver('Test::More','1.001002') };
 eval { $v .= pmver('strict','any version') };
 eval { $v .= pmver('utf8','any version') };
