@@ -30,6 +30,8 @@ sub sha1 {
 }
 
 
+## no critic (ProhibitBuiltinHomonyms)
+
 sub delete {
   my ( $self, $params ) = @_;
   if ( $params->{force} ) {
@@ -44,6 +46,7 @@ sub move {
   my ( $self, $new_name, $params ) = @_;
   if ( not defined $new_name or not length $new_name ) {
     require Carp;
+    ## no critic (ProhibitLocalVars)
     local @CARP_NOT = __PACKAGE__;
     Carp::croak(q[Move requires a defined argument to move to, with length >= 1 ]);
   }

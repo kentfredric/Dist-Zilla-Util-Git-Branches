@@ -131,7 +131,7 @@ Returns a C<::Branch> object for each local branch.
 
 =head2 C<current_branch>
 
-Returns a C<::Branch> object if currently on a C<branch>, undef otherwise.
+Returns a C<::Branch> object if currently on a C<branch>, C<undef> otherwise.
 
     my $b = $branches->current_branch;
     if ( defined $b ) {

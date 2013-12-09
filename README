@@ -30,7 +30,8 @@ METHODS
     Returns a "::Branch" object for each local branch.
 
   "current_branch"
-    Returns a "::Branch" object if currently on a "branch", undef otherwise.
+    Returns a "::Branch" object if currently on a "branch", "undef"
+    otherwise.
 
         my $b = $branches->current_branch;
         if ( defined $b ) {
