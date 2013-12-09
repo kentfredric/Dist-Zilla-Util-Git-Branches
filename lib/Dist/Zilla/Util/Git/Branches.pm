@@ -70,7 +70,6 @@ sub get_branch {
   return @out;
 }
 
-
 sub _current_sha1 {
   my ($self)          = @_;
   my (@current_sha1s) = $self->git->rev_parse('HEAD');
