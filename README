@@ -43,6 +43,11 @@ METHODS
     Mostly, because the underlying mechanism is implemented in terms of
     fnmatch(3)
 
+    If the branch does not exist, or no branches match the expression,
+    "get_branch" will return an empty list.
+
+    So in the top example, $branch is "undef" if "master" does not exist.
+
   "current_branch"
     Returns a "::Branch" object if currently on a "branch", "undef"
     otherwise.

@@ -160,6 +160,10 @@ For instance, C<branches> is implemented as
 
 Mostly, because the underlying mechanism is implemented in terms of L<< C<fnmatch(3)>|fnmatch(3) >>
 
+If the branch does not exist, or no branches match the expression, C<< get_branch >>  will return an empty list.
+
+So in the top example, C<$branch> is C<undef> if C<master> does not exist.
+
 =head2 C<current_branch>
 
 Returns a C<::Branch> object if currently on a C<branch>, C<undef> otherwise.
