@@ -54,7 +54,7 @@ sub _for_each_ref {
 
 sub branches {
   my ( $self, ) = @_;
-  return $self->get_branch('*');
+  return $self->get_branch(q[*]);
 }
 
 
