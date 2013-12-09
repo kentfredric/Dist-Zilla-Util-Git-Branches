@@ -78,7 +78,7 @@ version 0.001000
 
 =head2 C<sha1>
 
-Returns the SHA1 of the branch tip.
+Returns the C<SHA1> of the branch tip.
 
 =head2 C<delete>
 
