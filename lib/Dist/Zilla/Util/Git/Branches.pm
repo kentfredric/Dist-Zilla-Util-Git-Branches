@@ -39,20 +39,37 @@ sub _mk_branches {
 }
 
 
-sub branches {
-  my ( $self, ) = @_;
-  my @out;
-  for my $commdata ( $self->git->for_each_ref( 'refs/heads/*', '--format=%(objectname) %(refname)' ) ) {
+sub _for_each_ref {
+  my ( $self, $refpragma, $code ) = @_;
+  for my $commdata ( $self->git->for_each_ref( $refpragma, '--format=%(objectname) %(refname)' ) ) {
     if ( $commdata =~ qr{ \A ([^ ]+) [ ] refs/heads/ ( .+ ) \z }msx ) {
-      my ( $sha, $branch ) = ( $1, $2 );
-      push @out, $self->_mk_branch($branch);
+      $code->( $1, $2 );
       next;
     }
     require Carp;
     Carp::confess( 'Regexp failed to parse a line from `git for-each-ref` :' . $commdata );
   }
+  return;
+}
+
+sub branches {
+  my ( $self, ) = @_;
+  return $self->get_branch('*');
+}
+
+
+sub get_branch {
+  my ( $self, $name ) = @_;
+  my @out;
+  $self->_for_each_ref(
+    'refs/heads/' . $name => sub {
+      my ( $sha1, $branch ) = @_;
+      push @out, $self->_mk_branch($branch);
+    }
+  );
   return @out;
 }
+
 
 sub _current_sha1 {
   my ($self)          = @_;
@@ -128,6 +145,20 @@ So
 =head2 C<branches>
 
 Returns a C<::Branch> object for each local branch.
+
+=head2 get_branch
+
+Get branch info about master
+
+    my $branch = $branches->get_branch('master');
+
+Note: This can easily return multiple values.
+
+For instance, C<branches> is implemented as 
+
+    my ( @branches ) = $branches->get_branch('*');
+
+Mostly, because the underlying mechanism is implemented in terms of L<< C<fnmatch(3)>|fnmatch(3) >>
 
 =head2 C<current_branch>
 

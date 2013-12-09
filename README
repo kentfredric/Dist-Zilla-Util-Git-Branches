@@ -29,6 +29,20 @@ METHODS
   "branches"
     Returns a "::Branch" object for each local branch.
 
+  get_branch
+    Get branch info about master
+
+        my $branch = $branches->get_branch('master');
+
+    Note: This can easily return multiple values.
+
+    For instance, "branches" is implemented as
+
+        my ( @branches ) = $branches->get_branch('*');
+
+    Mostly, because the underlying mechanism is implemented in terms of
+    fnmatch(3)
+
   "current_branch"
     Returns a "::Branch" object if currently on a "branch", "undef"
     otherwise.
