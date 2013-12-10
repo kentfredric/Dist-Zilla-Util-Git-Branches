@@ -106,7 +106,7 @@ Returns the C<SHA1> of the branch tip.
 
 Note: C<$branch> will of course still exist after this step.
 
-=head2 C<delete>
+=head2 C<move>
 
     $branch->move($new_name); # git branch -m $branch->name, $new_name
 
