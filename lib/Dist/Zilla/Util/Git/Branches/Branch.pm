@@ -13,21 +13,33 @@ BEGIN {
 # ABSTRACT: A Branch object
 
 use Moose;
+extends 'Dist::Zilla::Util::Git::Refs::Ref';
+
 our @CARP_NOT;
 
-has git  => ( isa => Object =>, is => ro =>, required => 1 );
-has name => ( isa => Str    =>, is => ro =>, required => 1 );
 
-
-sub sha1 {
-  my ($self)  = @_;
-  my (@sha1s) = $self->git->rev_parse( $self->name );
-  if ( scalar @sha1s > 1 ) {
+sub new_from_Ref {
+  my ( $class, $object ) = @_;
+  if ( not $object->can('name') ) {
     require Carp;
-    return Carp::confess(q[Fatal: rev-parse branchname returned multiple values]);
+    return Carp::croak("Object $object does not respond to ->name, cannot Ref -> Branch");
   }
-  return shift @sha1s;
+  my $name = $object->name;
+  if ( $name =~ qr{\Arefs/heads/(.+\z)}msx ) {
+    return $class->new(
+      git  => $object->git,
+      name => $1,
+    );
+  }
+  require Carp;
+  Carp::croak("Path $name is not in refs/heads/*, cannot convert to Branch object");
 }
+
+sub refname {
+    my ( $self ) = @_;
+    return 'refs/heads/' . $self->name;
+}
+
 
 
 ## no critic (ProhibitBuiltinHomonyms)
@@ -75,6 +87,12 @@ Dist::Zilla::Util::Git::Branches::Branch - A Branch object
 version 0.001000
 
 =head1 METHODS
+
+=head2 C<new_from_Ref>
+
+Convert a Git::Refs::Ref to a Git::Branches::Branch
+
+    my $branch = $class->new_from_Ref( $ref );
 
 =head2 C<sha1>
 

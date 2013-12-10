@@ -38,7 +38,7 @@ METHODS
 
     For instance, "branches" is implemented as
 
-        my ( @branches ) = $branches->get_branch('*');
+        my ( @branches ) = $branches->get_branch('**');
 
     Mostly, because the underlying mechanism is implemented in terms of
     fnmatch(3)
