@@ -7,26 +7,45 @@ package Dist::Zilla::Util::Git::Branches::Branch;
 # ABSTRACT: A Branch object
 
 use Moose;
+extends 'Dist::Zilla::Util::Git::Refs::Ref';
+
 our @CARP_NOT;
 
-has git  => ( isa => Object =>, is => ro =>, required => 1 );
-has name => ( isa => Str    =>, is => ro =>, required => 1 );
+=method C<new_from_Ref>
+
+Convert a Git::Refs::Ref to a Git::Branches::Branch
+
+    my $branch = $class->new_from_Ref( $ref );
+
+=cut
+
+sub new_from_Ref {
+  my ( $class, $object ) = @_;
+  if ( not $object->can('name') ) {
+    require Carp;
+    return Carp::croak("Object $object does not respond to ->name, cannot Ref -> Branch");
+  }
+  my $name = $object->name;
+  if ( $name =~ qr{\Arefs/heads/(.+\z)}msx ) {
+    return $class->new(
+      git  => $object->git,
+      name => $1,
+    );
+  }
+  require Carp;
+  Carp::croak("Path $name is not in refs/heads/*, cannot convert to Branch object");
+}
+
+sub refname {
+    my ( $self ) = @_;
+    return 'refs/heads/' . $self->name;
+}
 
 =method C<sha1>
 
 Returns the C<SHA1> of the branch tip.
 
 =cut
-
-sub sha1 {
-  my ($self)  = @_;
-  my (@sha1s) = $self->git->rev_parse( $self->name );
-  if ( scalar @sha1s > 1 ) {
-    require Carp;
-    return Carp::confess(q[Fatal: rev-parse branchname returned multiple values]);
-  }
-  return shift @sha1s;
-}
 
 =method C<delete>
 

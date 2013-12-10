@@ -33,6 +33,7 @@ use MooseX::LazyRequire;
 
 has 'zilla' => ( is => ro =>, isa => Object =>, lazy_required => 1 );
 has 'git'   => ( is => ro =>, isa => Object =>, lazy_build    => 1 );
+has 'refs'  => ( is => ro =>, isa => Object =>, lazy_build    => 1 );
 
 sub _build_git {
   my ($self) = @_;
@@ -40,18 +41,21 @@ sub _build_git {
   return Dist::Zilla::Util::Git::Wrapper->new( zilla => $self->zilla );
 }
 
-sub _mk_branch {
-  my ( $self, $branchname ) = @_;
-  require Dist::Zilla::Util::Git::Branches::Branch;
-  return Dist::Zilla::Util::Git::Branches::Branch->new(
-    git  => $self->git,
-    name => $branchname,
-  );
+sub _build_refs {
+  my ($self) = @_;
+  require Dist::Zilla::Util::Git::Refs;
+  return Dist::Zilla::Util::Git::Refs->new( git => $self->git );
 }
 
-sub _mk_branches {
-  my ( $self, @branches ) = @_;
-  return map { $self->_mk_branch($_) } @branches;
+sub _to_branch {
+  my ( $self, $ref ) = @_;
+  require Dist::Zilla::Util::Git::Branches::Branch;
+  return Dist::Zilla::Util::Git::Branches::Branch->new_from_Ref($ref);
+}
+
+sub _to_branches {
+  my ( $self, @refs ) = @_;
+  return map { $self->_to_branch($_) } @refs;
 }
 
 =method C<branches>
@@ -60,22 +64,9 @@ Returns a C<::Branch> object for each local branch.
 
 =cut
 
-sub _for_each_ref {
-  my ( $self, $refpragma, $code ) = @_;
-  for my $commdata ( $self->git->for_each_ref( $refpragma, '--format=%(objectname) %(refname)' ) ) {
-    if ( $commdata =~ qr{ \A ([^ ]+) [ ] refs/heads/ ( .+ ) \z }msx ) {
-      $code->( $1, $2 );
-      next;
-    }
-    require Carp;
-    Carp::confess( 'Regexp failed to parse a line from `git for-each-ref` :' . $commdata );
-  }
-  return;
-}
-
 sub branches {
   my ( $self, ) = @_;
-  return $self->get_branch(q[*]);
+  return $self->get_branch(q[**]);
 }
 
 =method get_branch
@@ -88,7 +79,7 @@ Note: This can easily return multiple values.
 
 For instance, C<branches> is implemented as 
 
-    my ( @branches ) = $branches->get_branch('*');
+    my ( @branches ) = $branches->get_branch('**');
 
 Mostly, because the underlying mechanism is implemented in terms of L<< C<fnmatch(3)>|fnmatch(3) >>
 
@@ -100,14 +91,7 @@ So in the top example, C<$branch> is C<undef> if C<master> does not exist.
 
 sub get_branch {
   my ( $self, $name ) = @_;
-  my @out;
-  $self->_for_each_ref(
-    'refs/heads/' . $name => sub {
-      my ( $sha1, $branch ) = @_;
-      push @out, $self->_mk_branch($branch);
-    }
-  );
-  return @out;
+  return $self->_to_branches( $self->refs->get_ref( 'refs/heads/' . $name ) );
 }
 
 sub _current_sha1 {
@@ -145,10 +129,13 @@ Returns a C<::Branch> object if currently on a C<branch>, C<undef> otherwise.
 
 sub current_branch {
   my ( $self, ) = @_;
-  my $ref = $self->_current_branch_name;
+  my ($ref) = $self->_current_branch_name;
   return if not $ref;
   return if $ref eq 'HEAD';    # Weird special case.
-  return $self->_mk_branch($ref);
+  my (@items) = $self->get_branch($ref);
+  return shift @items if @items == 1;
+  require Carp;
+  Carp::confess( 'get_branch(' . $ref . ') returned multiple values. Cannot determine current branch' );
 }
 
 __PACKAGE__->meta->make_immutable;

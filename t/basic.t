@@ -46,8 +46,8 @@ pass('Git::Wrapper methods executed without failure');
 use Dist::Zilla::Util::Git::Branches;
 my $branch_finder = Dist::Zilla::Util::Git::Branches->new( git => $wrapper );
 
-is( $branch_finder->current_branch->name, 'master_3' );
-is( scalar $branch_finder->branches, 3, '3 Branches found' );
+is( $branch_finder->current_branch->name, 'master_3', 'master_3 exists' );
+is( scalar $branch_finder->branches,      3,          '3 Branches found' );
 my $branches = {};
 for my $branch ( $branch_finder->branches ) {
   $branches->{ $branch->name } = $branch;
