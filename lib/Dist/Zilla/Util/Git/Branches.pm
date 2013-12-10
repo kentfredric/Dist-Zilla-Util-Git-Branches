@@ -77,7 +77,7 @@ Get branch info about master
 
 Note: This can easily return multiple values.
 
-For instance, C<branches> is implemented as 
+For instance, C<branches> is implemented as
 
     my ( @branches ) = $branches->get_branch('**');
 

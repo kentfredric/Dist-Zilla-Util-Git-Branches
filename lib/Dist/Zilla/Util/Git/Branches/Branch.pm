@@ -68,7 +68,7 @@ sub delete {
 
 }
 
-=method C<delete>
+=method C<move>
 
     $branch->move($new_name); # git branch -m $branch->name, $new_name
 
